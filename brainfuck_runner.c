@@ -77,8 +77,16 @@ static void run_list(
 int main(int argc, char *argv[])
 {
         struct brainfuck_instruction_list *list;
+	const char *input = "";
         int res;
         int status = EXIT_FAILURE;
+
+	if (argc > 2) {
+		print_error("Only one input can be provided", EINVAL);
+		goto error_input;
+	} else if (argc == 2) {
+		input = argv[1];
+	}
 
         list = brainfuck_instruction_list_create();
 	if (!list) {
@@ -92,11 +100,12 @@ int main(int argc, char *argv[])
 		goto error_read;
 	}
 
-	run_list(list, "Hello world!");
+	run_list(list, input);
         status = EXIT_SUCCESS;
 error_run:
 error_read:
         brainfuck_instruction_list_destroy(list);
 error_create:
+error_input:
         return status;
 }
