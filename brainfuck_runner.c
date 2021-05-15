@@ -66,6 +66,10 @@ static void run_list(
 			if (buf[cursor])
 				i = value;
 			break;
+
+		case BRAINFUCK_INSTRUCTION_OPCODE_RESET:
+			buf[cursor] = 0;
+			break;
 		
 		default:
 			break;

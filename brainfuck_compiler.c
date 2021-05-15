@@ -117,6 +117,46 @@ static int optimize_output(struct brainfuck_instruction_list *list)
         return 0;
 }
 
+static int optimize_reset(struct brainfuck_instruction_list *list)
+{
+        unsigned int i;
+        unsigned int cursor;
+        struct brainfuck_instruction *inst;
+        enum brainfuck_instruction_opcode opcode;
+        static const enum brainfuck_instruction_opcode pattern[] = {
+                BRAINFUCK_INSTRUCTION_OPCODE_JUMP_0,
+                BRAINFUCK_INSTRUCTION_OPCODE_MODIFY,
+                BRAINFUCK_INSTRUCTION_OPCODE_JUMP_NON_0
+        };
+        const size_t pattern_size = sizeof(pattern) / sizeof(pattern[0]);
+        int res;
+
+        i = 0;
+        while (i <= brainfuck_instruction_list_get_size(list) - pattern_size) {
+                for (cursor = 0; cursor < pattern_size; cursor++) {
+                        inst = brainfuck_instruction_list_get(list, i + cursor);
+                        opcode = brainfuck_instruction_get_opcode(inst);
+                        if (opcode != pattern[cursor])
+                                goto next_loop;
+                }
+
+                /* The pattern has been found, replaced by a reset opcode */
+                for (cursor = 0; cursor < pattern_size - 1; cursor++) {
+                        res = brainfuck_instruction_list_remove(list, i);
+                        if (res < 0)
+                                return res;
+                }
+
+                inst = brainfuck_instruction_list_get(list, i);
+                brainfuck_instruction_set_opcode(
+                                inst, BRAINFUCK_INSTRUCTION_OPCODE_RESET);
+next_loop:
+                i++;
+        }
+
+        return 0;
+}
+
 static int resolve_jumps(struct brainfuck_instruction_list *list)
 {
         struct brainfuck_instruction *anchor;
@@ -187,7 +227,13 @@ int main(int argc, char *argv[])
         res = optimize_output(list);
         if (res < 0) {
                 print_error("Could not optimize output", -res);
-                goto error_optimize;
+                goto error_optimize_output;
+        }
+
+        res = optimize_reset(list);
+        if (res < 0) {
+                print_error("Could not optimize reset", -res);
+                goto error_optimize_reset;
         }
 
         res = resolve_jumps(list);
@@ -205,7 +251,8 @@ int main(int argc, char *argv[])
         status = EXIT_SUCCESS;
 error_write:
 error_jumps:
-error_optimize:
+error_optimize_reset:
+error_optimize_output:
 error_add:
         brainfuck_instruction_list_destroy(list);
 error_create:

@@ -17,7 +17,8 @@ enum brainfuck_instruction_opcode {
         BRAINFUCK_INSTRUCTION_OPCODE_READ,
         BRAINFUCK_INSTRUCTION_OPCODE_WRITE,
         BRAINFUCK_INSTRUCTION_OPCODE_JUMP_0,
-        BRAINFUCK_INSTRUCTION_OPCODE_JUMP_NON_0
+        BRAINFUCK_INSTRUCTION_OPCODE_JUMP_NON_0,
+        BRAINFUCK_INSTRUCTION_OPCODE_RESET
 };
 
 /* Functions -----------------------------------------------------------------*/
